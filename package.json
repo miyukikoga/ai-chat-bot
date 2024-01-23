@@ -1,0 +1,39 @@
+{
+  "name": "ai-chat-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && npm run serve",
+    "build": "tsc",
+    "serve": "node dist/index.js",
+    "deploy": "fly deploy",
+    "format": "prettier --write 'src/**/*.ts' && eslint --fix --ext .ts src",
+    "lint": "eslint --ext .ts src",
+    "prepare": "npx husky install"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/bolt": "^3.17.1",
+    "axios": "^1.6.5",
+    "openai": "^4.24.7"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.0",
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "prettier --write"
+  }
+}
