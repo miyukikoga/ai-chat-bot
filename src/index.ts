@@ -13,6 +13,7 @@ const app = new App({
 
 app.event('app_mention', async ({ event, say }) => {
   console.log({ event });
+  const threadTs = event.thread_ts ? event.thread_ts : event.ts;
   try {
     const completion = await openai.chat.completions.create({
       messages: [
@@ -29,11 +30,17 @@ app.event('app_mention', async ({ event, say }) => {
     });
 
     const content = completion.choices[0].message.content;
-    await say(`<@${event.user}> ${content}`);
+    await say({
+      text: `<@${event.user}> ${content}`,
+      thread_ts: threadTs,
+    });
   } catch (err) {
     console.error('app_mention event is failed.');
     console.error(err);
-    await say(`<@${event.user}> ${MESSAGES.chatError}`);
+    await say({
+      text: `<@${event.user}> ${MESSAGES.chatError}`,
+      thread_ts: threadTs,
+    });
   }
 });
 
