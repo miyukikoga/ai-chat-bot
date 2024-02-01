@@ -16,6 +16,8 @@ Slack上で動作するAIチャットボット
 export SLACK_SIGNING_SECRET=
 export SLACK_BOT_TOKEN=
 export OPENAI_API_KEY=
+export PS_USERNAME=
+export PS_PASSWORD=
 ```
 
 2. 有効化する

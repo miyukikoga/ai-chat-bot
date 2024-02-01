@@ -2,6 +2,7 @@ import { App } from '@slack/bolt';
 import OpenAI from 'openai';
 import { MESSAGES } from './constants/messages';
 import { PROMPTS } from './constants/prompts';
+import { fetchThreadMessages, saveThreadMessages } from './db';
 
 const openai = new OpenAI();
 
@@ -14,22 +15,54 @@ const app = new App({
 app.event('app_mention', async ({ event, say }) => {
   console.log({ event });
   const threadTs = event.thread_ts ? event.thread_ts : event.ts;
+
   try {
-    const completion = await openai.chat.completions.create({
-      messages: [
+    const fetchResult = await fetchThreadMessages(threadTs);
+
+    const pastThreadMessages: OpenAI.Chat.ChatCompletionMessageParam[] =
+      fetchResult
+        .map((message) => [
+          {
+            role: 'user',
+            content: message.user,
+          } as const satisfies OpenAI.Chat.ChatCompletionMessageParam,
+          {
+            role: 'assistant',
+            content: message.ai,
+          } as const satisfies OpenAI.Chat.ChatCompletionMessageParam,
+        ])
+        .reduce((acc, value) => acc.concat(value), []);
+
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      [
         {
           role: 'system',
           content: PROMPTS.personality,
-        },
+        } as const satisfies OpenAI.Chat.ChatCompletionMessageParam,
+      ],
+      pastThreadMessages,
+      [
         {
           role: 'user',
-          content: `${event.text}`,
-        },
+          content: event.text,
+        } as const satisfies OpenAI.Chat.ChatCompletionMessageParam,
       ],
+    ].reduce((acc, value) => acc.concat(value), []);
+    console.log({ messages });
+
+    const completion = await openai.chat.completions.create({
+      messages: messages,
       model: 'gpt-4',
     });
 
     const content = completion.choices[0].message.content;
+
+    await saveThreadMessages({
+      threadTs: threadTs,
+      channel: event.channel,
+      userMessage: event.text,
+      aiMessage: content || '',
+    });
     await say({
       text: `<@${event.user}> ${content}`,
       thread_ts: threadTs,
